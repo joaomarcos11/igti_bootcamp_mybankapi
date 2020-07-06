@@ -12,17 +12,4 @@ const updateAccount = async (agency, account, params) => {
   );
 };
 
-// const deleteAccount = async (agency, account) => {
-//   const account = await accountModel.findOneAndDelete({
-//     agencia: agency,
-//     conta: account,
-//   });
-
-//   if (!account) {
-//     throw new Error('Conta não encontrada');
-//   }
-
-//   return { ContasAtivas: await accountModel.countDocuments({ agency }) };
-// };
-
 export { findAccount, updateAccount };

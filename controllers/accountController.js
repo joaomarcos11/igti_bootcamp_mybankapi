@@ -68,7 +68,7 @@ const transfer = async (source, destination) => {
   const { agencia, conta, valor } = source; // req.body
   const { agency, account } = destination; // req.params
 
-  const accountSource = await findAccount(agencia, conta);
+  let accountSource = await findAccount(agencia, conta);
   const accountDestination = await findAccount(
     parseInt(agency),
     parseInt(account)
@@ -81,22 +81,87 @@ const transfer = async (source, destination) => {
     throw new Error('Conta destino inválida');
   }
   if (accountSource.agencia !== accountDestination.agencia) {
-    await accountModel.updateAccount(agencia, conta, {
+    await updateAccount(agencia, conta, {
       $inc: { balance: -(valor + 8) },
     });
-    // se eu botar setTimout? pode ser que as duas operações não possam ser realizadas simultaneamente
-    await accountModel.updateAccount(parseInt(agency), parseInt(account), {
+    await updateAccount(parseInt(agency), parseInt(account), {
       $inc: { balance: valor },
     });
   } else {
-    await accountModel.updateAccount(agencia, conta, {
+    await updateAccount(agencia, conta, {
       $inc: { balance: -valor },
     });
-    await accountModel.updateAccount(parseInt(agency), parseInt(account), {
+    await updateAccount(parseInt(agency), parseInt(account), {
       $inc: { balance: valor },
     });
   }
+
+  accountSource = await findAccount(agencia, conta);
+
   return { SaldoOrigem: accountSource.balance };
 };
 
-export { deposit, withdraw, consult, exclude, transfer };
+const agAverage = async (data) => {
+  const { agencia } = data; // req.body
+
+  const balanceAvg = await accountModel.aggregate([
+    { $match: { agencia } },
+    { $group: { _id: null, balanceMedio: { $avg: '$balance' } } },
+  ]);
+
+  return balanceAvg;
+};
+
+const lowerBalance = async (data) => {
+  const { quantidade } = data;
+
+  const lowBalance = await accountModel
+    .find({}, { _id: 0, agencia: 1, conta: 1, balance: 1 })
+    .sort({ balance: 1 })
+    .limit(quantidade);
+
+  return lowBalance;
+};
+
+const highestBalance = async (data) => {
+  const { quantidade } = data;
+
+  const highBalance = await accountModel
+    .find({}, { _id: 0, agencia: 1, conta: 1, name: 1, balance: 1 })
+    .sort({ balance: -1, name: 1 })
+    .limit(quantidade);
+  return highBalance;
+};
+
+const changeAgency = async () => {
+  const listAgencies = [10, 25, 47, 33];
+
+  for (let i of listAgencies) {
+    let account = await accountModel
+      .find({ agencia: i })
+      .sort({ balance: -1 })
+      .limit(1);
+
+    await updateAccount(account[0].agencia, account[0].conta, {
+      $set: { agencia: 99 },
+    });
+  }
+
+  const agency99 = await accountModel.find(
+    { agencia: 99 },
+    { _id: 0, agencia: 1, conta: 1, name: 1, balance: 1 }
+  );
+
+  return agency99;
+};
+export {
+  deposit,
+  withdraw,
+  consult,
+  exclude,
+  transfer,
+  agAverage,
+  lowerBalance,
+  highestBalance,
+  changeAgency,
+};
