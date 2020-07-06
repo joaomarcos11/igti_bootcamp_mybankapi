@@ -46,7 +46,7 @@ Projeto "MyBankApi" realizado com Node.js e MongoDB para realização de operaç
 
 - No MongoDB Atlas, deve-se configurar o endereço IP no "Network Access".
 
-- No projeto, deve-se instalar os pacotes **express** e **mongoose**:
+- No projeto, deve-se instalar os pacotes **express**, **mongoose** e **dotenv**:
 
 ```
 npm install express mongoose
