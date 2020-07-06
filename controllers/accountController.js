@@ -68,9 +68,6 @@ const transfer = async (source, destination) => {
   const { agencia, conta, valor } = source; // req.body
   const { agency, account } = destination; // req.params
 
-  // const agencyInt = parseInt(agency);
-  // const accountInt = parseInt(account);
-
   const accountSource = await findAccount(agencia, conta);
   const accountDestination = await findAccount(
     parseInt(agency),
@@ -87,6 +84,7 @@ const transfer = async (source, destination) => {
     await accountModel.updateAccount(agencia, conta, {
       $inc: { balance: -(valor + 8) },
     });
+    // se eu botar setTimout? pode ser que as duas operações não possam ser realizadas simultaneamente
     await accountModel.updateAccount(parseInt(agency), parseInt(account), {
       $inc: { balance: valor },
     });
